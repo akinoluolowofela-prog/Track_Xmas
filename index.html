@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Christmas Countdown</title>
+    <style>
+        
+        :root {
+            --bg-gradient: radial-gradient(circle, #1a472a, #0b2213);
+            --accent-color: #d42426;
+            --accent-glow: rgba(212, 36, 38, 0.5);
+            --text-gold: #f8d147;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+            transition: background 0.8s ease;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            margin-bottom: 2.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 1px;
+        }
+
+        .countdown-container {
+            display: flex;
+            gap: 1.5rem;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2.5rem;
+            border-radius: 16px;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 10;
+        }
+
+        .time-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 100px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .time-box:hover {
+            transform: scale(1.05);
+        }
+
+        .number {
+            font-size: 3.8rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            text-shadow: 0 0 15px var(--accent-glow);
+            background: #ffffff;
+            width: 100%;
+            text-align: center;
+            border-radius: 12px;
+            padding: 0.6rem 0;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.15);
+            transition: color 0.5s ease, text-shadow 0.5s ease;
+        }
+
+        .label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            margin-top: 0.8rem;
+            letter-spacing: 1.5px;
+            color: var(--text-gold);
+            font-weight: 600;
+            transition: color 0.5s ease;
+        }
+
+        /* Interactive Controls */
+        .controls {
+            margin-top: 3rem;
+            z-index: 10;
+            display: flex;
+            gap: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.6rem;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .theme-btn.active, .theme-btn:hover {
+            background: #ffffff;
+            color: #111111;
+            box-shadow: 0 4px 12px rgba(255,255,255,0.2);
+        }
+
+        /* Ambient Particle Effect */
+        .particle {
+            position: absolute;
+            top: -10px;
+            background: #ffffff;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(0) translateX(0); opacity: 0.8; }
+            100% { transform: translateY(105vh) translateX(50px); opacity: 0.1; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="main-title">Christmas Countdown</h1>
+    <div class="subtitle" id="sub-title">Tracking the winter solstice season</div>
+
+    <div class="countdown-container">
+        <div class="time-box" onclick="triggerPulse(this)">
+            <span class="number" id="days">00</span>
+            <span class="label">Days</span>
+        </div>
+        <div class="time-box" onclick="triggerPulse(this)">
+            <span class="number" id="hours">00</span>
+            <span class="label">Hours</span>
+        </div>
+        <div class="time-box" onclick="triggerPulse(this)">
+            <span class="number" id="minutes">00</span>
+            <span class="label">Minutes</span>
+        </div>
+        <div class="time-box" onclick="triggerPulse(this)">
+            <span class="number" id="seconds">00</span>
+            <span class="label">Seconds</span>
+        </div>
+    </div>
+
+    <!-- Interactive Theme Switcher Container -->
+    <div class="controls">
+        <button class="theme-btn active" onclick="setTheme('classic', this)">Classic Pine</button>
+        <button class="theme-btn" onclick="setTheme('crimson', this)">Midnight Crimson</button>
+        <button class="theme-btn" onclick="setTheme('nordic', this)">Nordic Frost</button>
+    </div>
+
+    <script>
+        // Core Logic Engine
+        function updateCountdown() {
+            const now = new Date();
+            let currentYear = now.getFullYear();
+            let christmas = new Date(`December 25, ${currentYear} 00:00:00`);
+            
+            if (now > christmas) {
+                christmas = new Date(`December 25, ${currentYear + 1} 00:00:00`);
+            }
+
+            const diff = christmas - now;
+
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('days').innerText = d.toString().padStart(2, '0');
+            document.getElementById('hours').innerText = h.toString().padStart(2, '0');
+            document.getElementById('minutes').innerText = m.toString().padStart(2, '0');
+            document.getElementById('seconds').innerText = s.toString().padStart(2, '0');
+        }
+
+        // Interactive Theme Engine
+        function setTheme(themeName, element) {
+            // Manage Active Button States
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+
+            const root = document.documentElement;
+            const title = document.getElementById('main-title');
+
+            if (themeName === 'classic') {
+                root.style.setProperty('--bg-gradient', 'radial-gradient(circle, #1a472a, #0b2213)');
+                root.style.setProperty('--accent-color', '#d42426');
+                root.style.setProperty('--accent-glow', 'rgba(212, 36, 38, 0.5)');
+                root.style.setProperty('--text-gold', '#f8d147');
+                title.innerText = "Christmas Countdown";
+            } else if (themeName === 'crimson') {
+                root.style.setProperty('--bg-gradient', 'radial-gradient(circle, #4a1216, #1c0507)');
+                root.style.setProperty('--accent-color', '#b8860b');
+                root.style.setProperty('--accent-glow', 'rgba(184, 134, 11, 0.5)');
+                root.style.setProperty('--text-gold', '#ffffff');
+                title.innerText = "Holiday Countdown";
+            } else if (themeName === 'nordic') {
+                root.style.setProperty('--bg-gradient', 'radial-gradient(circle, #203a43, #0f2027)');
+                root.style.setProperty('--accent-color', '#00b4db');
+                root.style.setProperty('--accent-glow', 'rgba(0, 180, 219, 0.5)');
+                root.style.setProperty('--text-gold', '#a8dadc');
+                title.innerText = "Winter Countdown";
+            }
+        }
+
+        // Micro-interaction Feedback Click 
+        function triggerPulse(element) {
+            element.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                element.style.transform = 'none';
+            }, 150);
+        }
+
+        // Particle Generation Engine
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            const size = Math.random() * 4 + 2;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            
+            particle.style.left = Math.random() * 100 + 'vw';
+            particle.style.animationDuration = Math.random() * 4 + 3 + 's';
+            particle.style.opacity = Math.random() * 0.6 + 0.2;
+            
+            document.body.appendChild(particle);
+
+            setTimeout(() => {
+                particle.remove();
+            }, 7000);
+        }
+
+        // Execution Timers
+        setInterval(updateCountdown, 1000);
+        setInterval(createParticle, 150);
+        updateCountdown();
+    </script>
+</body>
+</html>
